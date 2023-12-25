@@ -95,7 +95,7 @@ func build(ctx context.Context, repo string, wg *sync.WaitGroup) {
 }
 
 var tplContent = template.Must(template.New("content").Parse(`---
-title: "{{ .repo }}'s {{ .release.Name }}"
+title: "{{ .repo }}/{{ .release.TagName }}"
 date: {{ .release.CreatedAt }}
 publishDate: {{ .release.PublishedAt }}
 draft: {{ .release.Draft }}
