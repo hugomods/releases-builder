@@ -14,23 +14,21 @@ import (
 	"github.com/go-errors/errors"
 	yaml "github.com/goccy/go-yaml"
 	"github.com/google/go-github/v57/github"
+	"github.com/hugomods/releases-builder/internal/config"
 )
 
-type config struct {
-	Repositories []string `yaml:"repositories"`
-}
-
+var cfg *config.Config
 var cfgFile string
-var langs string
-var contentDir string
+
+func init() {
+	cfg = config.NewConfig()
+}
 
 func main() {
 	flag.StringVar(&cfgFile, "c", ".releases-builder.yaml", "Configuration file.")
-	flag.StringVar(&langs, "langs", "", "Comma-separated language codes, e.g. en,fr,zh-hans.")
-	flag.StringVar(&contentDir, "contentDir", "content/releases", "The location the content put into.")
 	flag.Parse()
 
-	cfg, err := parseConfig()
+	err := parseConfig()
 	if err != nil {
 		panic(err)
 	}
@@ -46,22 +44,21 @@ func main() {
 	wait.Wait()
 }
 
-func parseConfig() (*config, error) {
+func parseConfig() error {
 	content, err := os.ReadFile(cfgFile)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	cfg := &config{}
 	if err := yaml.Unmarshal(content, cfg); err != nil {
-		return nil, err
+		return err
 	}
 
 	if len(cfg.Repositories) == 0 {
-		return nil, errors.New("no repositories specified.")
+		return errors.New("no repositories specified.")
 	}
 
-	return cfg, nil
+	return nil
 }
 
 func build(ctx context.Context, repo string, wg *sync.WaitGroup) {
@@ -111,7 +108,7 @@ release_url: "{{ .release.HTMLURL }}"
 `))
 
 func generate(repo string, release *github.RepositoryRelease) error {
-	dir := filepath.Join(filepath.FromSlash(contentDir), strings.Replace(repo, "/", "-", -1))
+	dir := filepath.Join(filepath.FromSlash(cfg.ContentDir), strings.Replace(repo, "/", "-", -1))
 	if err := os.MkdirAll(dir, 0744); err != nil {
 		return err
 	}
@@ -125,9 +122,9 @@ func generate(repo string, release *github.RepositoryRelease) error {
 		return err
 	}
 
-	if langs != "" {
-		for _, lang := range strings.Split(langs, ",") {
-			if err := writeFile(filepath.Join(dir, fmt.Sprintf("%s.%s.md", *release.Name, lang)), buff.Bytes()); err != nil {
+	if len(cfg.Languages) > 0 {
+		for _, lang := range cfg.Languages {
+			if err := writeFile(filepath.Join(dir, fmt.Sprintf("%s.%s.md", *release.Name, lang.Code)), buff.Bytes()); err != nil {
 				return err
 			}
 		}
