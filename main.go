@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"sync"
 	"text/template"
@@ -107,6 +108,8 @@ release_url: "{{ .release.HTMLURL }}"
 {{ .release.Body }}
 `))
 
+var regName = regexp.MustCompile(`[/:]`)
+
 func generate(repo string, release *github.RepositoryRelease) error {
 	dir := filepath.Join(filepath.FromSlash(cfg.ContentDir), strings.Replace(repo, "/", "-", -1))
 	if err := os.MkdirAll(dir, 0744); err != nil {
@@ -122,15 +125,16 @@ func generate(repo string, release *github.RepositoryRelease) error {
 		return err
 	}
 
+	name := regName.ReplaceAllString(strings.Replace(*release.TagName, " ", "", -1), "-")
 	if len(cfg.Languages) > 0 {
 		for _, lang := range cfg.Languages {
-			if err := writeFile(filepath.Join(dir, fmt.Sprintf("%s.%s.md", *release.Name, lang.Code)), buff.Bytes()); err != nil {
+			if err := writeFile(filepath.Join(dir, fmt.Sprintf("%s.%s.md", name, lang.Code)), buff.Bytes()); err != nil {
 				return err
 			}
 		}
 
 	} else {
-		return writeFile(filepath.Join(dir, *release.Name+".md"), buff.Bytes())
+		return writeFile(filepath.Join(dir, name+".md"), buff.Bytes())
 	}
 
 	return nil
