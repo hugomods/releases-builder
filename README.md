@@ -17,7 +17,7 @@ releases-builder -h
 
 ## Integrate With GitHub Action
 
-1. Create a [confgiuration](#configuration) file and save it as `.releases-builder.yaml` on repo root.
+1. Create a [configuration](#configuration) file and save it as `.releases-builder.yaml` on repo root.
 2. Create a workflow `.github/workflows/releases-builder.yaml`.
 ```yaml
 name: Releases Builder
@@ -73,7 +73,7 @@ The location where the releases content to be put into, default to `content/rele
 
 ### `languages`
 
-An array of languages, when provied, the releases content will be saved in `index.[lang].md` pattern.
+An array of languages, when provided, the releases content will be saved in `index.[lang].md` pattern.
 
 ### `params`
 
