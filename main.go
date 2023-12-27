@@ -103,6 +103,36 @@ prerelease: {{ .release.Prerelease }}
 name: "{{ .release.Name }}"
 tag_name: "{{ .release.TagName }}"
 release_url: "{{ .release.HTMLURL }}"
+{{- with .params.Images }}
+images:
+  {{- range . }}
+  - {{ . }}
+	{{- end }}
+{{- end }}
+{{- with .params.Authors }}
+authors:
+  {{- range . }}
+  - {{ . }}
+	{{- end }}
+{{- end }}
+{{- with .params.Categories }}
+categories:
+  {{- range . }}
+  - {{ . }}
+	{{- end }}
+{{- end }}
+{{- with .params.Series }}
+series:
+  {{- range . }}
+  - {{ . }}
+	{{- end }}
+{{- end }}
+{{- with .params.Tags }}
+tags:
+  {{- range . }}
+  - {{ . }}
+	{{- end }}
+{{- end }}
 ---
 
 {{ .release.Body }}
@@ -120,6 +150,7 @@ func generate(repo string, release *github.RepositoryRelease) error {
 	data := map[string]interface{}{
 		"repo":    repo,
 		"release": release,
+		"params":  cfg.Params,
 	}
 	if err := tplContent.Execute(&buff, data); err != nil {
 		return err
